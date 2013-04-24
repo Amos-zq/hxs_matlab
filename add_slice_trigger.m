@@ -21,9 +21,11 @@ function EEG = add_slice_trigger( EEG, trType, sliceNum )
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 eventTR = struct([]);
+eventNum = [];
 for i = 1:length(EEG.event)
     if strcmp(EEG.event(i).type, trType)
         eventTR = [eventTR, EEG.event(i)];
+        eventNum = [eventn, i];
     end
 end
 latency = zeros(1, length(eventTR));
@@ -34,7 +36,7 @@ end
 if length(C) > 1
     disp('Error: Missing TR')
     for i = 1:length(IA)
-        fprintf(1, 'Num = %d, EventNum = %d, TR Length = %d\n', i, IA(i), C(i));
+        fprintf(1, 'Num = %d, EventNum = %d, TR Length = %d\n', i, eventNum(IA(i)), C(i));
     end
     str = input('Accept? Y/N [Y]: ', 's');
     if strcmp(str, 'N')
