@@ -25,7 +25,7 @@ eventNum = [];
 for i = 1:length(EEG.event)
     if strcmp(EEG.event(i).type, trType)
         eventTR = [eventTR, EEG.event(i)];
-        eventNum = [eventn, i];
+        eventNum = [eventNum, i];
     end
 end
 latency = zeros(1, length(eventTR));
