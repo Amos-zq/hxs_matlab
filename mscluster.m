@@ -1,6 +1,41 @@
-function [L Gamma alpha R sigma_mcv log] = mscluster(V, Nu, b, l, iterN, chanlocs, sm_r, sm_alpha)
+function [L, Gamma, alpha, R, sigma_mcv, log] = mscluster(V, Nu, iterN, chanlocs, sm_r, sm_alpha, b, l)
+%mscluster EEG microstate clustering analysis
+% R. D. Pascual-Marqui, C. M. Michel, and D. Lehmann, ?Segmentation of
+% brain electrical activity into microstates: model estimation and
+% validation.,? IEEE Trans Biomed Eng, vol. 42, no. 7, pp. 658?665, Jul.
+% 1995.
 %
-%
+% 
+% Usage:
+%     [L, Gamma, alpha, R, sigma_mcv, log] = mscluster(V, Nu, iterN, chanlocs, sm_r, sm_alpha, b, l);
+% 
+% Inputs:
+%     V:          EEG data, channel*frame
+%     Nu:         number of clusters
+%     iterN:      number of iteration
+%     chanlocs:   chanlocs for spatial smoothness
+%     sm_r:       spatial smoothness range
+%     sm_alpha:   spatial smoothness ratio
+%     b:          time smoothness range
+%     l:          time smoothness ratio
+% 
+% Outputs:
+%     L:          microstate label
+%     Gamma:      microstate spatial map
+%     alpha:      microstate time course
+%     R:          explained variance
+%     sigma_mcv:  cross-validation residual variance
+%     log:        interation log
+%    
+% Author: Huang Xiaoshan, xiaoshanhuang@gmail.com
+% 
+% Versions:
+%     v0.1:   01-Apr-2013, original
+%     v0.2:   24-Apr-2013, revesion
+%     
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 % init
 [Ns Nt] = size(V);
 % 2b)

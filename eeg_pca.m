@@ -1,6 +1,6 @@
-function [ pc times] = eeg_pca( EEG, events, tlim, npc )
+function [ pc, times] = eeg_pca( EEG, events, tlim, npc )
 %eeg_pca perform pca on EEG event epochs
-% Useage:
+% Usage:
 %   [ pc times] = eeg_pca( EEG, events, tlim, npc )
 %
 % Inputs:

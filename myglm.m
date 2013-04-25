@@ -1,7 +1,7 @@
 function glm = myglm( X, func, mask, alpha, ifr, id )
 %myglm glm analysis of nii img, given a design matrix
 %
-% Useage:
+% Usage:
 %   glm = myglm( X, func, mask, ifr, id )
 %
 % Inputs:
