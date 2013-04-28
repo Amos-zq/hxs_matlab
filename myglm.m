@@ -2,7 +2,7 @@ function glm = myglm( X, func, mask, alpha, ifr, id )
 %myglm glm analysis of nii img, given a design matrix
 %
 % Usage:
-%   glm = myglm( X, func, mask, ifr, id )
+%   myglm( X, func, mask, alpha, ifr, id );
 %
 % Inputs:
 %   X:      design matrix
@@ -57,6 +57,7 @@ end
 
 
 % Initialize progress indicator
+maskIdx = find(mask~=0);
 nTotal = length(maskIdx);
 nSteps = 20;
 step = 0;
