@@ -57,7 +57,6 @@ end
 
 
 % Initialize progress indicator
-maskIdx = find(mask==1);
 nTotal = length(maskIdx);
 nSteps = 20;
 step = 0;
