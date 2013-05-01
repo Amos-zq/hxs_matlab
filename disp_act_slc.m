@@ -1,4 +1,4 @@
-function [img ovl] = disp_act_slc( dim, anat, act, amin, amax )
+function [img, ovl] = disp_act_slc( dim, anat, act, amin, amax )
 %disp_act_slc display activation map in slices 
 %
 % Useage:
@@ -40,7 +40,8 @@ else
     end
     act( act>amin(1) & act<amin(2) ) = 0;
     if isempty(amax)
-        amax = [min(min(min(act))) max(max(max(act)))];
+%         amax = [min(min(min(act))) max(max(max(act)))];
+        amax = [-7.5 7.5];
     end
 end
 

@@ -51,6 +51,7 @@ X = [X c1 c2];
 X = X(ifr(1):ifr(2),:);
 
 [nx, ny, nslc, nf] = size(func);
+func(isnan(func)) = 0;
 if isempty(mask)
     mask = ones(nx, ny, nslc);
 end

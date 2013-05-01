@@ -34,6 +34,7 @@ else
     mask = imresize(mask, size(func,1)/size(mask,1));
 end
 data = double(squeeze(reshape(repmat(mask,[1 1 1 np]).*func, imx*imy*imz, 1, 1, []))');
+data(isnan(data)) = 0;
 [wts,sph] = binica(data, 'pca', nc);
 act = mapstd(wts*sph*data);
 act = reshape(act', imx, imy, imz, nc);
