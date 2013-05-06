@@ -90,7 +90,8 @@ end
 
 % Deinitialize progress indicator
 fprintf(1, '\n')
-
+t = t(:,:,:,2:end);
+p = p(:,:,:,2:end);
 if isempty(alpha)
     p_fdr = []; p_masked = [];
 else
