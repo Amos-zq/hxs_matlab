@@ -29,7 +29,7 @@ function msEEG = microstateEEG( EEG, nc )
 TR = 2.04;
 [gfp,gd] = eeg_gfp(EEG.data',1);
 peakLoc = peakfinder(zscore(gfp), 1);
-[L_gfp, Gamma, alpha_gfp, R_gfp, sigma_mcv_gfp, log] = mscluster(mapstd(EEG.data(:,peakLoc)), nc, 200, EEG.chanlocs, 10, 1, 25, 1);
+[L_gfp, Gamma, alpha_gfp, R_gfp, sigma_mcv_gfp, log] = mscluster((EEG.data(:,peakLoc)), nc, 200, EEG.chanlocs, 10, 1, 25, 1);
 
 gfp_hrf = mapstd((decimate(conv(double(gfp)', spm_hrf(1/EEG.srate)), EEG.srate*TR, 'FIR')));
 gd_hrf = mapstd((decimate(conv(double(gd)', spm_hrf(1/EEG.srate)), EEG.srate*TR, 'FIR')));
