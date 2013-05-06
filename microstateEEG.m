@@ -1,108 +1,68 @@
 function msEEG = microstateEEG( EEG, nc )
-%microstateEEG calculate EEG microstates using kmeans cluster
+% microstateEEG calculate EEG microstates using mscluster cluster
 % Usage:
 %   msEEG = microstateEEG( EEG, nc );
-%
+% 
 % Inputs:
-%   EEG:        EEGLAB data structure
-%   nc:         Number of Clusters
-%
+%   EEG :EEGLAB data structure
+%   nc  :Number of Clusters
+% 
 % Outputs:
 %   msEEG.
-%   gfp:        gfp
-%   gd:         gd
-%   peakLoc:    gfp peak location
-%   microstate: microstate
-%   IDX:        cluster index
-%   C:          cluster map
-%   msCorr:     corr with data
-%   msCluster:  cluster index in original dimension
-%
+%   gfp     :gfp
+%   gd      :gd
+%   peakLoc :gfp peak location
+%   L       :cluster labels
+%   Gamma   :cluster map
+%   alpha   :time course of each cluster
+%   
+% 
 % Author: Huang Xiaoshan, xiaoshanhuang@gmail.com
-%
+% 
 % Versions:
 %   v0.1:   27-Mar-2013, orignal
 %   v0.2:   29-Mar-2013, add hrf conv
-%
+%   v0.3:   06-May-2013, use mscluster
+% 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+TR = 2.04;
 [gfp,gd] = eeg_gfp(EEG.data',1);
-peakLoc = peakfinder(zscore(gd), 1);
-microstate = mapstd(EEG.data(:,peakLoc)')';
-fprintf(1, 'Clustering...\n');
-[IDX, C] = kmeans(microstate', nc);
-R = corrcoef(C');
-[I, J] = find((tril(R)<-0.9)==1);
-while ~isempty(I)
-    for i = 1:length(I)
-        microstate(:, IDX==I(i)) = -microstate(:, IDX==I(i));
-    end
-    fprintf(1, 'Clustering...\n');
-    [IDX, C] = kmeans(microstate', nc);
-    R = corrcoef(C');
-    [I, J] = find((tril(R)<-0.99)==1);
+peakLoc = peakfinder(zscore(gfp), 1);
+[L_gfp, Gamma, alpha_gfp, R_gfp, sigma_mcv_gfp, log] = mscluster(mapstd(EEG.data(:,peakLoc)), nc, 200, EEG.chanlocs, 10, 1, 25, 1);
+
+gfp_hrf = mapstd((decimate(conv(double(gfp)', spm_hrf(1/EEG.srate)), EEG.srate*TR, 'FIR')));
+gd_hrf = mapstd((decimate(conv(double(gd)', spm_hrf(1/EEG.srate)), EEG.srate*TR, 'FIR')));
+
+% labeling all data points, calculate alpha for all data points
+[Y,L] = max((EEG.data'*Gamma).^2,[],2);
+alpha = zeros(nc, EEG.pnts);
+for t = 1:EEG.pnts
+    kk = L(t);
+    for k = 1:nc
+        if k==kk
+            alpha(k,t) = EEG.data(:,t)'*Gamma(:,k);
+        else
+            alpha(k,t) = 0;
+        end
+    end 
 end
+sigma_u = sum((sum(EEG.data.^2, 1)-sum(Gamma(:,L).*EEG.data,1).^2)/(EEG.pnts*(EEG.nbchan-1)), 2);
+sigma_mcv = sigma_u*((EEG.nbchan-1)^-1*(EEG.nbchan-1-nc))^-2;
+R = sqrt(1 - sigma_u/sum(sum(EEG.data.^2, 1)/(EEG.pnts*(EEG.nbchan-1)), 2));
 
-gfp_hrf = conv(mapstd(decimate(double(gfp'), 250*2.04)), spm_hrf(2.04));
-gd_hrf = conv(mapstd(decimate(double(gd'), 250*2.04)), spm_hrf(2.04));
-
-
-msCluster = zeros(nc, EEG.pnts);
+% conv hrf
+alpha_hrf = [];
+L_hrf = [];
 for i = 1:nc
-    msCluster(i,peakLoc(IDX==i)) = 1;
-end
-
-msCluster_hrf = [];
-for i = 1:nc
-    msCluster_hrf(i,:) = conv(mapstd(decimate(double(msCluster(i,:)), 250*2.04)), spm_hrf(2.04)); 
-end
-
-msCorr = zeros(nc, EEG.pnts);
-msDiss = msCorr;
-
-% Initialize progress indicator
-nSteps = 20;
-step = 0;
-fprintf(1, 'corr: |');
-strLength = fprintf(1, [repmat(' ', 1, nSteps - step) '|   0%%']);
-tic
-for i = 1:EEG.pnts
-    for j = 1:nc
-        msCorr(j,i) = corr(EEG.data(:,i), C(j,:)'); 
-        msDiss(j,i) = sqrt(2*(1-msCorr(j,i)));
-    end
-    [step, strLength] = mywaitbar(i, EEG.pnts, step, nSteps, strLength);
-end
-% Deinitialize progress indicator
-fprintf(1, '\n')
-
-msCorr_hrf = [];
-msDiss_hrf = [];
-for i = 1:nc
-    msCorr_hrf(i,:) = conv(mapstd(decimate(abs(msCorr(i,:)), 250*2.04)), spm_hrf(2.04));
-    msDiss_hrf(i,:) = conv(mapstd(decimate(abs(msDiss(i,:)), 250*2.04)), spm_hrf(2.04));
-end
-
-msEEG = struct('gfp', gfp, 'gd', gd, 'gfp_hrf', gfp_hrf, 'gd_hrf', gd_hrf, ...
-               'peakLoc', peakLoc, 'microstate', microstate, ...
-               'IDX', IDX, 'C', C, 'msCluster', msCluster, 'msCluster_hrf', msCluster_hrf, ...
-               'msCorr', msCorr, 'msCorr_hrf', msCorr_hrf, 'msDiss', msDiss, 'msDiss_hrf', msDiss_hrf);
-
+    alpha_hrf(i,:) = decimate(conv(abs(alpha(i,:)), spm_hrf(1/EEG.srate)), EEG.srate*TR, 'FIR');
+    L_hrf(i,:) = decimate(conv(double(L==i), spm_hrf(1/EEG.srate)), EEG.srate*TR, 'FIR');
 end
 
 
-
-
-function [step, strLength] = mywaitbar(compl, total, step, nSteps, strLength)
-
-progStrArray = '/-\|';
-tmp = floor(compl / total * nSteps);
-if tmp > step
-    fprintf(1, [repmat('\b', 1, strLength) '%s'], repmat('=', 1, tmp - step))
-    step = tmp;
-    ete = ceil(toc / step * (nSteps - step));
-    strLength = fprintf(1, [repmat(' ', 1, nSteps - step) '%s %3d%%, ETE %02d:%02d'], progStrArray(mod(step - 1, 4) + 1), floor(step * 100 / nSteps), floor(ete / 60), mod(ete, 60));
-end
+msEEG = struct('gfp', gfp, 'gd', gd, 'gfp_hrf', gfp_hrf, 'gd_hrf', gd_hrf,'peakLoc', peakLoc, ...
+               'L', L, 'Gamma', Gamma, 'alpha', alpha, 'R', R, 'sigma_mcv', sigma_mcv, ...
+               'alpha_hrf', alpha_hrf, 'L_hrf', L_hrf);
 
 end
 

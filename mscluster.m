@@ -74,29 +74,29 @@ for n = 1:iterN
     [step, strLength] = mywaitbar(n, iterN, step, nSteps, strLength);
 end
 
-% relable
-sigma_0 = 0;
-for n = 1:iterN 
-    e = sum((sum(V.^2, 1)-sum((Gamma(:,L).*V).^2, 1))/(Nt*(Ns-1)), 2);
-    Nbkt = zeros(Nt, 2*b+1);
-    for shift = -b:b
-        Nbkt(:,shift+b+1) = circshift(L,b);
-    end
-    argk = zeros(Nt,Nu);
-    for k = 1:Nu
-        argk(:,k) = ((sum(V.^2, 1)-sum((Gamma(:,k)'*V).^2, 1))/(2*e*(Ns-1)))'...
-                    - l*sum(Nbkt==k,2);
-    end
-    [Y,L] = min(argk, [], 2);
-    sigma_u = sum((sum(V.^2, 1)-sum(Gamma(:,L).*V,1).^2)/(Nt*(Ns-1)), 2);
-    if abs(sigma_0-sigma_u) <= eps0*sigma_u
-        fprintf(1,['relabel iter stops at ' num2str(n) '\n']);
-        break;
-    else
-        log(n,2) = abs(sigma_0-sigma_u);
-        sigma_0 = sigma_u;
-    end
-end
+% % relable
+% sigma_0 = 0;
+% for n = 1:iterN 
+%     e = sum((sum(V.^2, 1)-sum((Gamma(:,L).*V).^2, 1))/(Nt*(Ns-1)), 2);
+%     Nbkt = zeros(Nt, 2*b+1);
+%     for shift = -b:b
+%         Nbkt(:,shift+b+1) = circshift(L,b);
+%     end
+%     argk = zeros(Nt,Nu);
+%     for k = 1:Nu
+%         argk(:,k) = ((sum(V.^2, 1)-sum((Gamma(:,k)'*V).^2, 1))/(2*e*(Ns-1)))'...
+%                     - l*sum(Nbkt==k,2);
+%     end
+%     [Y,L] = min(argk, [], 2);
+%     sigma_u = sum((sum(V.^2, 1)-sum(Gamma(:,L).*V,1).^2)/(Nt*(Ns-1)), 2);
+%     if abs(sigma_0-sigma_u) <= eps0*sigma_u
+%         fprintf(1,['relabel iter stops at ' num2str(n) '\n']);
+%         break;
+%     else
+%         log(n,2) = abs(sigma_0-sigma_u);
+%         sigma_0 = sigma_u;
+%     end
+% end
 
 % Deinitialize progress indicator
 fprintf(1, '\n');
