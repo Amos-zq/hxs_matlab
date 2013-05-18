@@ -1,26 +1,23 @@
 function [ P ] = spsmoothness( spmap, chanlocs, r)
-%spsmoothness calculate the spatial smoothness of given spatial map,
-%details see: F. Lotte and C. Guan, ?Spatially Regularized Common Spatial
-%Patterns for EEG Classification? Pattern Recognition (ICPR), 2010.
-% 
-% Usage:
-% 	P = spsmoothness( spmap, chanlocs, r);
-%
-% Inputs:
-%     spmap    : spatial map
-%     chanlocs : EEG chanlocs
-%     r        : spatial smoothness radius
-%
-% Outputs:
-%     P: spatial smoothness
-%
-% Author: Huang Xiaoshan, xiaoshanhuang@gmail.com
-%
-% Versions:
-%     v0.1: 18-Mar-2013
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%spsmoothness calculate the spatial smoothness of given spatial map, see for detail:
+% Lotte, F. & Guan, C. Spatially Regularized Common Spatial Patterns for EEG Classification. Pattern Recognition (ICPR) (2010).
 
+
+Usage:
+	P = spsmoothness( spmap, chanlocs, r);
+
+Inputs:
+	spmap: spatial map
+	chanlocs: EEG chanlocs
+	r: spatial smoothness ratial
+    
+% ssfljsdkjflskjdlfkjs dlksfjldjf sldkfj slkdjf lskjd fljsd lfj sldfj lsdjf
+% lsdj flsj fljs lfjs lkdjf lsjlsafjjfbut dlskjflksdj fslkjdf lsjf
+% wlkdfjlsjfdlkfj slkfdjlsjdflsjldfjsdfjalsdjfajfjfjjslkf  sdklfj lskjf
+% lsjf lsj flkjsdllfldkfjjfjd skfalksdjfjfjlsdjkf f f dsklfjlskfj s f
+% sdljflsj fls fjls jfl
+f
+%   Detailed explanation goes here
 if size(spmap,1) ~= size(chanlocs,2)
     fprintf(1, 'Channel number mismatch');
     return
