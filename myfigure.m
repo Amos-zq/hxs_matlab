@@ -1,4 +1,4 @@
-function varargout=figure(varargin)
+function varargout=myfigure(varargin)
 fprintf(1,'figure with memory\n');
 memcutoff = 10E6; % keep at least this amount of bytes free
 memkeyboard= 3E6; % if memory drops below this, interrupt execution and go to keyboard mode
