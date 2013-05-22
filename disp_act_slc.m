@@ -61,8 +61,6 @@ for ix = 1:size(img,2)
     end
 end
 img = mat2gray(img, [min(img(img~=0)), max(img(img~=0))]);
-imshow(imadjust(img, [0.1; 0.9], [], 1.8), 'Border', 'tight', 'Colormap', gray(256));
-% imshow(adapthisteq(img), 'Border', 'tight', 'Colormap', gray(256));
 
 if nslc == 30
     imshow(imadjust(img, [0.1; 0.9], [], 0.5), 'Border', 'tight', 'Colormap', gray(256));
