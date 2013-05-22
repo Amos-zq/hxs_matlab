@@ -5,7 +5,7 @@
 
 com.mathworks.services.Prefs.setBooleanPref('ColorsUseSystem', 0);
 
-com.mathworks.services.Prefs.setColorPref('ColorsText', java.awt.Color(int32(246), int32(247), int32(238)));
+com.mathworks.services.Prefs.setColorPref('ColorsText', java.awt.Color(int32(146), int32(147), int32(138)));
 com.mathworks.services.ColorPrefs.notifyColorListeners('ColorsText');
 
 com.mathworks.services.Prefs.setColorPref('ColorsBackground', java.awt.Color(int32(29), int32(30), int32(25)));
