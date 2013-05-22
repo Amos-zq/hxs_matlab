@@ -45,8 +45,8 @@ R = sqrt(1 - sigma_u/sum(sum(EEG.data.^2, 1)/(EEG.pnts*(EEG.nbchan-1)), 2));
 alpha_hrf = [];
 L_hrf = [];
 for i = 1:nc
-    alpha_hrf(i,:) = decimate(conv(abs(alpha(i,:)), spm_hrf(1/EEG.srate)), EEG.srate*TR, 'FIR');
-    L_hrf(i,:) = decimate(conv(double(L==i), spm_hrf(1/EEG.srate)), EEG.srate*TR, 'FIR');
+    alpha_hrf(i,:) = mapstd(decimate(conv(abs(alpha(i,:)), spm_hrf(1/EEG.srate)), EEG.srate*TR, 'FIR'));
+    L_hrf(i,:) = mapstd(decimate(conv(double(L==i), spm_hrf(1/EEG.srate)), EEG.srate*TR, 'FIR'));
 end
 
 
