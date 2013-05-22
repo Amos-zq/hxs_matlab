@@ -32,12 +32,13 @@ function [L, Gamma, alpha, R, sigma_mcv, log] = mscluster(V, Nu, iterN, chanlocs
 % Versions:
 %     v0.1:   01-Apr-2013, original
 %     v0.2:   24-Apr-2013, revesion
+%     v0.3:   21-May-2013, optimize relabeling
 %     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 % init
-[Ns Nt] = size(V);
+[Ns,Nt] = size(V);
 % 2b)
 L = randi(Nu,[Nt 1]);
 Gamma = zeros(Ns, Nu);
@@ -73,14 +74,22 @@ for n = 1:iterN
     end
     [step, strLength] = mywaitbar(n, iterN, step, nSteps, strLength);
 end
+% Deinitialize progress indicator
+fprintf(1, '\n');
 
 % % relable
 % sigma_0 = 0;
+% % Initialize progress indicator
+% nSteps = 20;
+% step = 0;
+% fprintf(1, 'relabeling: |');
+% strLength = fprintf(1, [repmat(' ', 1, nSteps - step) '|   0%%']);
+% tic
 % for n = 1:iterN 
 %     e = sum((sum(V.^2, 1)-sum((Gamma(:,L).*V).^2, 1))/(Nt*(Ns-1)), 2);
 %     Nbkt = zeros(Nt, 2*b+1);
 %     for shift = -b:b
-%         Nbkt(:,shift+b+1) = circshift(L,b);
+%         Nbkt(:,shift+b+1) = circshift(L,shift);
 %     end
 %     argk = zeros(Nt,Nu);
 %     for k = 1:Nu
@@ -90,16 +99,16 @@ end
 %     [Y,L] = min(argk, [], 2);
 %     sigma_u = sum((sum(V.^2, 1)-sum(Gamma(:,L).*V,1).^2)/(Nt*(Ns-1)), 2);
 %     if abs(sigma_0-sigma_u) <= eps0*sigma_u
-%         fprintf(1,['relabel iter stops at ' num2str(n) '\n']);
+%         fprintf(1,['\n relabel iter stops at ' num2str(n) '\n']);
 %         break;
 %     else
 %         log(n,2) = abs(sigma_0-sigma_u);
 %         sigma_0 = sigma_u;
 %     end
+%     [step, strLength] = mywaitbar(n, iterN, step, nSteps, strLength);
 % end
-
-% Deinitialize progress indicator
-fprintf(1, '\n');
+% % Deinitialize progress indicator
+% fprintf(1, '\n');
 
 sigma_mcv = sigma_u*((Ns-1)^-1*(Ns-1-Nu))^-2;
 
@@ -117,9 +126,6 @@ end
 
 R = 1 - sigma_u/sum(sum(V.^2, 1)/(Nt*(Ns-1)), 2);
 R = sqrt(R);
-
-
-
 
 function K = sm_k(chanlocs, sm_r)
     % spatial smoothness
