@@ -1,4 +1,4 @@
-function [L, Gamma, alpha, R, sigma_mcv, log] = mscluster(V, Nu, iterN, chanlocs, sm_r, sm_alpha, b, l)
+function [L, Gamma, alpha, R, sigma_mcv, log] = mscluster(V, Nu, iterN, chanlocs, sm_r, sm_alpha, b, l, bcg)
 %mscluster EEG microstate clustering analysis
 % R. D. Pascual-Marqui, C. M. Michel, and D. Lehmann, ?Segmentation of
 % brain electrical activity into microstates: model estimation and
@@ -18,6 +18,7 @@ function [L, Gamma, alpha, R, sigma_mcv, log] = mscluster(V, Nu, iterN, chanlocs
 %     sm_alpha:   spatial smoothness ratio
 %     b:          time smoothness range
 %     l:          time smoothness ratio
+%     bcg:        bcg noise
 % 
 % Outputs:
 %     L:          microstate label
@@ -33,6 +34,7 @@ function [L, Gamma, alpha, R, sigma_mcv, log] = mscluster(V, Nu, iterN, chanlocs
 %     v0.1:   01-Apr-2013, original
 %     v0.2:   24-Apr-2013, revesion
 %     v0.3:   21-May-2013, optimize relabeling
+%     v0.4:   22-May-2013, add bcg
 %     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -48,6 +50,7 @@ K = sm_k(chanlocs, sm_r);
 
 eps0 = 10^-6;
 sigma_0 = 0; 
+ECovRes = bcg*bcg'/size(bcg,2);
 % Initialize progress indicator
 nSteps = 20;
 step = 0;
@@ -57,11 +60,15 @@ tic
 for n = 1:iterN 
     % Calculate Gamma
     for k = 1:Nu
-%         S = (1+sm_alpha*K)\(V(:,L==k)*V(:,L==k)'/sum(L==k));
         S = (V(:,L==k)*V(:,L==k)'/sum(L==k));
+%         S = (1+sm_alpha*K)\(V(:,L==k)*V(:,L==k)'/sum(L==k));
+%         Wh = ECovRes^(-0.5);
+%         S = (Wh*V(:,L==k))*(Wh*V(:,L==k))'/sum(L==k);
+        
         [X,D] = eig(S);
         [Q,I] = sort(diag(D), 'descend');
         Gamma(:,k) = X(:,I(1));
+%         Gamma(:,k) = ECovRes^(0.5) * X(:,I(1));
     end
     sigma_u = sum((sum(V.^2, 1)-sum(Gamma(:,L).*V,1).^2)/(Nt*(Ns-1)), 2);
     if abs(sigma_0-sigma_u) <= eps*sigma_u
