@@ -18,6 +18,7 @@ function roi_tc = extract_roi( fnii, masknii )
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 nii = load_nii(fnii);
 func = double(nii.img);
+[imx, imy, imz, np] = size(func);
 nii = load_nii(masknii);
 mask = double(nii.img);
 data = double(squeeze(reshape(func, imx*imy*imz, 1, 1, [])));
