@@ -16,7 +16,7 @@ f = Fs/2*linspace(0,1,NFFT/2+1);
 plot(f,((abs(Y(1:NFFT/2+1))))), xlim(flim)
 title('Power Spectrum')
 xlabel('Frequency (Hz)')
-ylabel('Power (dB)')
+ylabel('Power (\muV)')
 
 end
 
