@@ -1,6 +1,26 @@
-function [EEG, fitted_art, papc_cw] = obs_ac( EEG,etype,npc )
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
+function [EEG, fitted_art, papc_ac] = obs_ac( EEG,etype,npc )
+%pulse artifacts removal using Optimal Basis Set from ALL Channel
+%
+% Usage:
+%   [EEG, fitted_art, papc_ac] = obs_ac( EEG,etype,npc )
+%
+% Inputs:
+%   EEG:    EEGLAB data structure
+%   etype:  bcg event type, e.g. 'bcg'
+%   npc:    number of OBS to remove
+%
+% Outputs:
+%   EEG:    clear EEG
+%   fitted_art: fitted artifact
+%   papc_ac:    artifact PCs from ALL Channel
+%
+% Author: Huang Xiaoshan, xiaoshanhuang@gmail.com
+%
+% Versions:
+%   v0.1:   19-Jun-2013, orignal
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %init
 %-----
 fs=EEG.srate; 
@@ -78,8 +98,8 @@ pcamat=detrend(pcamat','constant')';
 meaneffect=mean(pcamat);
 dpcamat=detrend(pcamat,'constant');
 [apc,ascore,asvar]=pca_calc(dpcamat');
-papc_cw = [meaneffect' ascore(:,1:pcs)];
-papc_cw = reshape(papc_cw, channels, 2*PArange+1, npc);
+papc_ac = [meaneffect' ascore(:,1:pcs)];
+papc_ac = reshape(papc_ac, channels, 2*PArange+1, npc);
 
 %Artifact Subtraction
 %---------------------
@@ -88,7 +108,7 @@ papc_cw = reshape(papc_cw, channels, 2*PArange+1, npc);
 % findg mean QRS peak-to-peak (R-to-R) interval
 for ch=1:channels
     
-    papc = squeeze(papc_cw(ch, :, :));
+    papc = squeeze(papc_ac(ch, :, :));
     
     try
         pad_fit=double(papc)*(double(papc)\...
