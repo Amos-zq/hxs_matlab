@@ -65,10 +65,10 @@ pa=peakcount;
 RR=diff(peakI);
 mRR=median(RR);
 sRR=std(RR);
-PArange=round((0.7*mRR)/2);
+% PArange=round((0.7*mRR)/2);
 % PArange=round((mRR+sRR)/2);
 % PArange=round(1.25*(mRR+sRR)/2);
-% PArange=round(1.5*mRR/2);
+PArange=round(1.5*mRR/2);
 midP=PArange+1;
 while (peakI(pa)+PArange > samples)
     pa=pa-1;
