@@ -45,12 +45,12 @@ for i = 1:length(bcgEvent)
     bcgTempEpoch(:,:,i) = C*A(:,:,i)*Z;
 end
 
-% % SIM Decompose BCG
-% [A,S,z] = SIM(bcg,nc);
-% bcgTempEpoch = bcg;
-% for i = 1:length(bcgEvent)
-%     bcgTempEpoch(:,:,i) = A*z;
-% end
+% SIM Decompose BCG
+[A,S,z] = SIM(bcg,10);
+bcgTempEpoch = bcg;
+for i = 1:length(bcgEvent)
+    bcgTempEpoch(:,:,i) = A*z()
+end
 
 bcgTemp = zeros(EEG.nbchan, EEG.pnts);
 bcgTemp(:,bcgEvent(1)-PArange:bcgEvent(1)+PArange) = bcgTempEpoch(:,:,1);
