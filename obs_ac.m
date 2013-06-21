@@ -1,5 +1,6 @@
-function [EEG, fitted_art, papc_ac] = obs_ac( EEG,etype,npc )
+function [EEG, fitted_art, papc_ac] = obs_ac( EEG,etype,npc,fitAllChannels )
 %pulse artifacts removal using Optimal Basis Set from ALL Channel
+%edited from fmrib_pas.m
 %
 % Usage:
 %   [EEG, fitted_art, papc_ac] = obs_ac( EEG,etype,npc )
@@ -18,6 +19,7 @@ function [EEG, fitted_art, papc_ac] = obs_ac( EEG,etype,npc )
 %
 % Versions:
 %   v0.1:   19-Jun-2013, orignal
+%   V0.2:   21-Jun-2013, fit with all channels
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -84,7 +86,7 @@ ord=round(3*fs/0.5);
 fwts=firls(ord,f,a);
 
 %Channel-wise obs
-eegfilted = zeros(channels, samples);
+eegfilted = EEG.data;
 for ch=1:channels
     eegfilted(ch,:)=filtfilt(fwts,1,double(EEG.data(ch,:)));
 end
@@ -99,8 +101,67 @@ meaneffect=mean(pcamat);
 dpcamat=detrend(pcamat,'constant');
 [apc,ascore,asvar]=pca_calc(dpcamat');
 papc_ac = [meaneffect' ascore(:,1:pcs)];
-papc_ac = reshape(papc_ac, channels, 2*PArange+1, npc);
+papc_ce = reshape(papc_ac, channels, 2*PArange+1, npc);
 
+
+
+if fitAllChannels
+    
+    papc = papc_ac;
+    
+    try
+        tempEEG = detrend(EEG.data(:,peakI(1)-PArange:...
+            peakI(1)+PArange)', 'constant')';
+        pad_fit = double(papc)*(double(papc)\double(tempEEG(:)));
+        pad_fit = reshape(pad_fit, channels, 2*PArange+1);
+        fitted_art(:,peakI(1)-PArange:peakI(1)+PArange) = pad_fit;
+            
+    catch
+    end
+    
+    for p=2:GHW+1
+        tempEEG = detrend(EEG.data(:,peakI(p)-PArange:...
+            peakI(p)+PArange)','constant')';
+        pad_fit = double(papc)*(double(papc)\double(tempEEG(:)));
+        pad_fit = reshape(pad_fit, channels, 2*PArange+1);
+        fitted_art(:,peakI(p)-PArange:peakI(p)+PArange) = pad_fit;
+    end
+    
+    rcount=GHW;
+    for p=GHW+2:peakcount-GHW-1 
+        PreP=ceil((peakI(p)-peakI(p-1))/2);
+        PostP=ceil((peakI(p+1)-peakI(p))/2);
+        if PreP > PArange
+            PreP=PArange;
+        end
+        if PostP > PArange
+            PostP=PArange;
+        end
+        tempEEG = detrend(EEG.data(:,peakI(p)-PArange:...
+            peakI(p)+PArange)','constant')';
+        pad_fit=double(papc)*(double(papc)\double(tempEEG(:)));
+        pad_fit = reshape(pad_fit, channels, 2*PArange+1);
+        fitted_art(:,peakI(p)-PreP:peakI(p)+PostP)=...
+            pad_fit(:,midP-PreP:midP+PostP);
+    end
+    
+    sectionPoints=samples-(peakI(peakcount-GHW)-PreP)+1;
+
+    for p=peakcount-GHW:peakcount
+        try
+            tempEEG = detrend(EEG.data(:,peakI(p)-PArange:...
+                peakI(p)+PArange)','constant')';
+            pad_fit=double(papc)*(double(papc)\double(tempEEG(:)));
+            pad_fit = reshape(pad_fit, channels, 2*PArange+1);
+            fitted_art(:,peakI(p)-PreP:peakI(p)+PostP)=...
+                pad_fit(:,midP-PreP:midP+PostP);
+
+        catch
+        end        
+    end
+
+else
+    
 %Artifact Subtraction
 %---------------------
 
@@ -108,7 +169,7 @@ papc_ac = reshape(papc_ac, channels, 2*PArange+1, npc);
 % findg mean QRS peak-to-peak (R-to-R) interval
 for ch=1:channels
     
-    papc = squeeze(papc_ac(ch, :, :));
+    papc = squeeze(papc_ce(ch, :, :));
     
     try
         pad_fit=double(papc)*(double(papc)\...
@@ -170,6 +231,8 @@ for ch=1:channels
         catch
         end        
     end
+
+end
 
 end
 
