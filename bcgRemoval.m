@@ -1,4 +1,4 @@
-function [ EEG, bcgTemp, C, Z, A, bcgTempEpoch ] = tensor_BCG_Removal( EEG, etype, nc )
+function [ EEG, bcgTemp, bcgTempEpoch ] = bcgRemoval( EEG, etype, method, nc )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -33,24 +33,44 @@ EEGfilted = pop_eegfiltnew(EEG, 0.5);
 EEGfilted = pop_eegfiltnew(EEGfilted, 0, 40);
 
 % Epoch BCG
-bcg = zeros(EEG.nbchan, 2*PArange+1, length(bcgEvent));
+bcgEpoch = zeros(EEG.nbchan, 2*PArange+1, length(bcgEvent));
+eegEpoch = bcgEpoch;
 for i = 1:length(bcgEvent)
-    bcg(:,:,i) = EEGfilted.data(:,bcgEvent(i)-PArange:bcgEvent(i)+PArange);
+    bcgEpoch(:,:,i) = EEGfilted.data(:,bcgEvent(i)-PArange:...
+        bcgEvent(i)+PArange);
+    eegEpoch(:,:,i) = detrend(EEG.data(:,bcgEvent(i)-PArange:...
+        bcgEvent(i)+PArange)', 'constant')';
 end
-
-% Tensor Decompose BCG
-[C,Z,A] = tensor_BCG(bcg,nc,50);
-bcgTempEpoch = bcg;
-for i = 1:length(bcgEvent)
-    bcgTempEpoch(:,:,i) = C*A(:,:,i)*Z;
+bcgTempEpoch = bcgEpoch;
+switch method
+    case 'obs-ac'
+        pcamat = shiftdim(bcgEpoch,2);
+        pcamat = pcamat(:,:)';
+        [COEFF, papc] = pca(pcamat);
+        papc = papc(:,1:nc);
+        for i = 1:length(bcgEvent)
+            tempEEG = eegEpoch(:,:,i);
+            pad_fit = double(papc)*(double(papc)\double(tempEEG(:)));
+            pad_fit = reshape(pad_fit, EEG.nbchan, 2*PArange+1);
+            bcgTempEpoch(:,:,i) = reshape(pad_fit, EEG.nbchan, 2*PArange+1);
+        end
+    case 'tensor'
+        % Tensor Decompose BCG
+        [C,Z,A] = tensor_BCG(bcgEpoch,nc,50);
+        for i = 1:length(bcgEvent)
+            bcgTempEpoch(:,:,i) = C*A(:,:,i)*Z;
+        end
+    case 'sim'
+        % SIM Decompose BCG
+        [A,S,z] = SIM(bcgEpoch,nc);
+        for i = 1:length(bcgEvent)
+            bcgTempEpoch(:,:,i) = A*z;
+        end
+    otherwise
+        disp('No such method...');
+        return;
 end
-
-% % SIM Decompose BCG
-% [A,S,z] = SIM(bcg,nc);
-% bcgTempEpoch = bcg;
-% for i = 1:length(bcgEvent)
-%     bcgTempEpoch(:,:,i) = A*z;
-% end
+    
 
 bcgTemp = zeros(EEG.nbchan, EEG.pnts);
 bcgTemp(:,bcgEvent(1)-PArange:bcgEvent(1)+PArange) = bcgTempEpoch(:,:,1);
