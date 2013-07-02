@@ -23,6 +23,7 @@ function msEEG = microstateEEG( EEG, nc )
 %   v0.1:   27-Mar-2013, orignal
 %   v0.2:   29-Mar-2013, add hrf conv
 %   v0.3:   06-May-2013, use mscluster
+%   v0.4:   01-Jul-2013, edit mscluster input params
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -30,7 +31,7 @@ TR = 2.04;
 iterN = 200;
 [gfp,gd] = eeg_gfp(EEG.data',1);
 peakLoc = peakfinder(zscore(gfp), 1);
-[L_gfp, Gamma, alpha_gfp, R_gfp, sigma_mcv_gfp, log] = mscluster((EEG.data(:,peakLoc)), nc, iterN, EEG.chanlocs, 10, 1, 25, 1);
+[L_gfp, Gamma, alpha_gfp, R_gfp, sigma_mcv_gfp, log] = mscluster((EEG.data(:,peakLoc)), nc, iterN, [25 1]);
 
 gfp_hrf = mapstd((decimate(conv(double(gfp)', spm_hrf(1/EEG.srate)), EEG.srate*TR, 'FIR')));
 gd_hrf = mapstd((decimate(conv(double(gd)', spm_hrf(1/EEG.srate)), EEG.srate*TR, 'FIR')));
