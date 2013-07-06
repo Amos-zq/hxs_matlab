@@ -1,4 +1,4 @@
-function msEEG = microstateEEG( EEG, nc )
+function msEEG = microstateEEG( EEG, nc, Gamma)
 % microstateEEG calculate EEG microstates using mscluster cluster
 % Usage:
 %   msEEG = microstateEEG( EEG, nc );
@@ -26,12 +26,25 @@ function msEEG = microstateEEG( EEG, nc )
 %   v0.4:   01-Jul-2013, edit mscluster input params
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if nargin<3
+    Gamma = [];
+end
+if isempty(Gamma)
+    clustering = 1;
+else
+    clustering = 0;
+    nc = size(Gamma,2);
+    log = [];
+end
 
 TR = 2.04;
 iterN = 200;
 [gfp,gd] = eeg_gfp(EEG.data',1);
 peakLoc = peakfinder(zscore(gfp), 1);
-[L_gfp, Gamma, alpha_gfp, R_gfp, sigma_mcv_gfp, log] = mscluster((EEG.data(:,peakLoc)), nc, iterN, [25 1]);
+if clustering
+    [L_gfp, Gamma, alpha_gfp, R_gfp, sigma_mcv_gfp, log] = ...
+        mscluster((EEG.data(:,peakLoc)), nc, iterN);
+end
 
 gfp_hrf = mapstd((decimate(conv(double(gfp)', spm_hrf(1/EEG.srate)), EEG.srate*TR, 'FIR')));
 gd_hrf = mapstd((decimate(conv(double(gd)', spm_hrf(1/EEG.srate)), EEG.srate*TR, 'FIR')));
