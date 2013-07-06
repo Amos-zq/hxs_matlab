@@ -72,7 +72,6 @@ end
 % 2b)
 L = randi(Nu,[Nt 1]);
 Gamma = zeros(Ns, Nu);
-
 eps0 = 10^-6;
 sigma_0 = 0; 
 % Initialize progress indicator
@@ -97,7 +96,7 @@ for n = 1:iterN
         [Q,I] = sort(diag(D), 'descend');
         Gamma(:,k) = X(:,I(1));
         if bcg_reduction
-            Gamma(:,k) = ECovRes^(0.5) * X(:,I(1));
+            Gamma(:,k) = pinv(A(:,k));
         end
     end
     sigma_u = sum((sum(V.^2, 1)-sum(Gamma(:,L).*V,1).^2)/(Nt*(Ns-1)), 2);
