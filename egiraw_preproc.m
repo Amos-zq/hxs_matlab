@@ -4,11 +4,11 @@ eeglab;
 %% input params
 [filename, pathname, filterindex] = uigetfile('*.raw', 'Pick a EGI raw file');
 [pathstr, name, ext] = fileparts(filename);
-inPathStr = pathstr; inName = name;
-outPath = inPathStr;
+inName = name;
+outPath = pathname;
 foo = input('input [sliceNum, interFolds, arWin, ANC]: ');
 if isempty(foo)
-    sliceNum = 30; interFolds = 1; arWin = 30; ANC = 0;
+    sliceNum = 30; interFolds = 10; arWin = 30; ANC = 0;
 else
     sliceNum = foo(1); interFolds = foo(2); arWin = foo(3); ANC = foo(4); 
 end
@@ -20,16 +20,15 @@ else
 end
 foo = input('input [loCutOff, hiCutOff]: ');
 if isempty(foo)
-    loCutOff = 0.1; hiCutOff = 50;
+    loCutOff = 0.5; hiCutOff = 50;
 else
     loCutOff = foo(1); hiCutOff = foo(2);
 end
 %% load EGI raw data
-EEG = pop_readegi( filename );
+EEG = pop_readegi( [pathname filename] );
 EEG.setname = inName;
 %% add chanlocs and remove baseline
-EEG.chanlocs=pop_chanedit(EEG.chanlocs, 'load',{ '/Users/hxs/Documents/Study/Research/Analysis/hxs_matlab/GSN-HydroCel-256.sfp', 'filetype', 'autodetect'});
-EEG.data = rmbase( EEG.data );
+EEG.chanlocs=pop_chanedit(EEG.chanlocs, 'load',{ '/Users/hxs/Documents/Study/Research/Analysis/GSN-HydroCel-256.sfp', 'filetype', 'autodetect'});
 %% TREV evaluation
 [EEG,trIndex] = pop_selectevent(EEG, 'type', 'TREV');
 eventTR = EEG.event(trIndex);
@@ -71,7 +70,7 @@ for i = 1:length(eventTR)
     end
 end
 %% fmrib_fastr
-[EEG, command] = pop_fmrib_fastr(EEG,[],interFolds,sliceNum,'Slice',...
+[EEG, command] = pop_fmrib_fastr(EEG,[],interFolds,arWin,'Slice',...
                                  1,ANC,[],[],[],[],[],'auto');
 EEG.setname = [inName '_fastr'];
 %% delete slice event and save EEG
@@ -86,10 +85,13 @@ end
 % select data point and channel range
 EEG = pop_select(EEG, 'point', [eventTR(trSel(1)).latency eventTR(trSel(2)).latency+trLength],...
                       'channel', find(chanR<chSelR));
-% filt
-[EEG, com, b] = pop_eegfiltnew(EEG, loCutOff, hiCutOff);
+% remove baseline
+EEG.data = rmbase( EEG.data );
 % reref to average
 EEG = pop_reref( EEG, [] );
+% filt
+[EEG, com, b] = pop_eegfiltnew(EEG, loCutOff, 0);
+[EEG, com, b] = pop_eegfiltnew(EEG, 0, hiCutOff);
 % save new set
 EEG.setname = [inName '_fastr_sel_filted'];
 EEG = pop_saveset(EEG, 'filename', [inName '_fastr_sel_filted'], 'filepath', outPath);
