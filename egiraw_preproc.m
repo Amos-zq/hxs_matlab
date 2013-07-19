@@ -1,11 +1,16 @@
 %% load EGI raw data and perform fmrib_fastr, selection, filt and rereference
 clear all; close all; clc;
 eeglab;
-%% input params
+%% load EGI raw data
 [filename, pathname, filterindex] = uigetfile('*.raw', 'Pick a EGI raw file');
 [pathstr, name, ext] = fileparts(filename);
 inName = name;
 outPath = pathname;
+EEG = pop_readegi( [pathname filename] );
+EEG.setname = inName;
+% add chanlocs and remove baseline
+EEG.chanlocs=pop_chanedit(EEG.chanlocs, 'load',{ '/Users/hxs/Documents/Study/Research/Analysis/GSN-HydroCel-256.sfp', 'filetype', 'autodetect'});
+%% input params
 foo = input('input [sliceNum, interFolds, arWin, ANC]: ');
 if isempty(foo)
     sliceNum = 30; interFolds = 10; arWin = 30; ANC = 0;
@@ -24,11 +29,6 @@ if isempty(foo)
 else
     loCutOff = foo(1); hiCutOff = foo(2);
 end
-%% load EGI raw data
-EEG = pop_readegi( [pathname filename] );
-EEG.setname = inName;
-%% add chanlocs and remove baseline
-EEG.chanlocs=pop_chanedit(EEG.chanlocs, 'load',{ '/Users/hxs/Documents/Study/Research/Analysis/GSN-HydroCel-256.sfp', 'filetype', 'autodetect'});
 %% TREV evaluation
 [EEG,trIndex] = pop_selectevent(EEG, 'type', 'TREV');
 eventTR = EEG.event(trIndex);
