@@ -1,6 +1,25 @@
 function [ EEG, bcgTemp, bcgTempEpoch ] = bcgRemoval( EEG, etype, method, nc )
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
+%bcgRemoval BCG artifact removal
+% Usage:
+%   [ EEG, bcgTemp, bcgTempEpoch ] = bcgRemoval( EEG, etype, method, nc )
+%
+% Inputs:
+%   EEG: EEGLAB data structure
+%   etype: bcg event type
+%   mathod: bcg removal method
+%   nc: number of component
+% 
+% Outputs:
+%   EEG: bcg free EEG structrue
+%   bcgTemp: bcg template of all data
+%   bcgTempEpoch: bcg template in epoch
+%
+% Author: Huang Xiaoshan, xiaoshanhuang@gmail.com
+%
+% Versions:
+%   v0.1: 2013-07-18 17:56, original version 
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Extract BCG event
 bcgEvent = [];
