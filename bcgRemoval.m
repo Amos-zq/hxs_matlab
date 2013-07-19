@@ -4,15 +4,15 @@ function [ EEG, bcgTemp, bcgTempEpoch ] = bcgRemoval( EEG, etype, method, nc )
 %   [ EEG, bcgTemp, bcgTempEpoch ] = bcgRemoval( EEG, etype, method, nc )
 %
 % Inputs:
-%   EEG: EEGLAB data structure
-%   etype: bcg event type
-%   mathod: bcg removal method
-%   nc: number of component
+%   EEG    : EEGLAB data structure
+%   etype  : bcg event type
+%   mathod : bcg removal method
+%   nc     : number of component
 % 
 % Outputs:
-%   EEG: bcg free EEG structrue
-%   bcgTemp: bcg template of all data
-%   bcgTempEpoch: bcg template in epoch
+%   EEG          : bcg free EEG structrue
+%   bcgTemp      : bcg template of all data
+%   bcgTempEpoch : bcg template in epoch
 %
 % Author: Huang Xiaoshan, xiaoshanhuang@gmail.com
 %
