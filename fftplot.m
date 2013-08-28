@@ -1,5 +1,9 @@
 function fftplot( x, Fs, flim)
 %Power Spectral Density Estimates Using FFT
+[row, col] = size(x);
+if row < col
+    x = x';
+end
 N = length(x);
 xdft = fft(x);
 xdft = xdft(1:N/2+1,:);
@@ -7,15 +11,15 @@ psdx = (1/(Fs*N)).*abs(xdft).^2;
 psdx(2:end-1) = 2*psdx(2:end-1);
 freq = 0:Fs/length(x):Fs/2;
 
-plot(freq,10*log10(psdx));
-grid on; xlim(flim);
-title('Power Spectral Density Estimate');
-xlabel('Frequency (Hz)'); ylabel('Power/Frequency (dB/Hz)');
-
-% plot(freq,(psdx));
+% plot(freq,10*log10(psdx));
 % grid on; xlim(flim);
 % title('Power Spectral Density Estimate');
-% xlabel('Frequency (Hz)'); ylabel('Power/Frequency (\muV/Hz)');
+% xlabel('Frequency (Hz)'); ylabel('Power/Frequency (dB/Hz)');
+
+plot(freq,(psdx));
+grid on; xlim(flim);
+title('Power Spectral Density Estimate');
+xlabel('Frequency (Hz)'); ylabel('Power/Frequency (\muV/Hz)');
 
 
 % %periodogram
