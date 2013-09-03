@@ -21,18 +21,18 @@ if nargin < 2
 end
     
 if nargin < 3
-    trialNum = 20;
+    trialNum = 15;
 end
 
 if nargin < 4
-    blockNum = 6;
+    blockNum = 10;
 end
 
 if nargin < 5
     cbSize = 0.8;
 end
 
-totalTime = (trialTime*trialNum+10)*blockNum+10
+totalTime = trialTime*trialNum*(2*blockNum+1)
 
 %% System config
 warning('off','MATLAB:dispatcher:InexactMatch');
@@ -119,16 +119,18 @@ try
     
     expStart = GetSecs;
     %% Prestimulus Fixation
-%     WaitSecs(trialTime*trialNum);
-    WaitSecs(1);
+    while GetSecs-expStart<trialTime*trialNum,
+        [keyIsDown, secs, keyCode] = KbCheck;
+        assert(~keyCode(KbName('Escape')),onExit);
+    end
+%     WaitSecs(1);
     if triggerOut, outp(hex2dec(triggerPort),0); end
     for i = 1:blockNum
         blockStart = GetSecs;
         %% Flash
         for j = 1:trialNum
-            if triggerOut, outp(hex2dec(triggerPort),TRTrigger); end
             % Random
-            WaitSecs(0.05*(1+rand(1)));
+%             WaitSecs(0.05*(1+rand(1)));
             if triggerOut, outp(hex2dec(triggerPort),0); end
             Screen('Flip', win, 0, 2);
             if triggerOut, outp(hex2dec(triggerPort),stimTrigger); end
@@ -139,7 +141,7 @@ try
             if triggerOut, outp(hex2dec(triggerPort),0); end
         end
         %% Fixation
-        while GetSecs-blockStart<trialTime*trialNum+10
+        while GetSecs-blockStart<trialTime*trialNum*2
             [keyIsDown, secs, keyCode] = KbCheck;
             assert(~keyCode(KbName('Escape')),onExit);
         end
