@@ -1,10 +1,22 @@
 function checkerboard_EEG_fMRI( shape,trialTime,trialNum,blockNum,cbSize )
+% 
+% checkerboard_EEG_fMRI( sidelength,trialTime,trialNum,blockNum,cbSize )
+% Input Params
+% sidelength: single box size
+% trialTime
+% trialNumber
+% blockNum
+% cbSize: ratio of checkerboard vs screen size, 1 full screen
+%
+% Huang Xiaoshan, xiaoshanhuang@gmail.com, 2012-3-4
+% Trigger Configer, Huang Xiaoshan, 20120331
+% Edited for BCG Artifact only, Huang Xiaoshan, 20120417
 % checkerboard stimulus for EEG-fMRI
 % Usage:
-%	  checkerboard_EEG_fMRI( shape,trialTime,trialNum,blockNum,cbSize );
+%	
 %
 % Inputs:
-%     shape     : 'circ' or 'rect'
+shape: circ or rect
 %     trialTime : trial duration
 %     trialNum  : number of trails in a block
 %     blockNum  : block number
@@ -16,10 +28,7 @@ function checkerboard_EEG_fMRI( shape,trialTime,trialNum,blockNum,cbSize )
 % Author: Huang Xiaoshan, xiaoshanhuang@gmail.com
 %
 % Versions:
-%	v0.1:   2012-3-4, orignal
-%   v0.2:   2012-3-31, Trigger Configer
-%   v0.3:   2012-4-17, Edited for BCG Artifact only
-%   v0.4:   2013-09-03 18:38, for BCG layer VEP
+%	v0.1:   , orignal
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
