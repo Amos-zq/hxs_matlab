@@ -53,7 +53,7 @@ onExit='execution halted by experimenter';
 AssertOpenGL;
 
 %% Trigger Config
-triggerOut = false;
+triggerOut = true;
 
 if triggerOut,
     config_io;
@@ -66,7 +66,8 @@ end
 %%
 
 try
-    myScreen = max(Screen('Screens'));
+%     myScreen = max(Screen('Screens'));
+    myScreen = 1;
     [win,winRect] = Screen(myScreen,'OpenWindow');
     Screen('TextSize', win, 100);
     
