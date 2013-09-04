@@ -66,7 +66,8 @@ end
 %%
 
 try
-    myScreen = max(Screen('Screens'));
+%     myScreen = max(Screen('Screens'));
+    myScreen = 1;
     [win,winRect] = Screen(myScreen,'OpenWindow');
     Screen('TextSize', win, 100);
     

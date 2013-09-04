@@ -113,7 +113,8 @@ PsychPortAudio('FillBuffer', pahandle, wavedata{round(audioFileNum/2)});
 try
     % Screen Init
     screens=Screen('Screens');
-    screenNumber=max(screens);
+%     screenNumber=max(screens);
+    screenNumber = 1;
     black=BlackIndex(screenNumber);
     white=WhiteIndex(screenNumber);
     [width, height]=Screen('WindowSize', screenNumber);
