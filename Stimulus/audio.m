@@ -45,7 +45,7 @@ onExit='execution halted by experimenter';
 AssertOpenGL;
 
 %% Trigger Config
-triggerOut = false;
+triggerOut = true;
 
 if triggerOut,
     config_io;
