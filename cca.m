@@ -1,34 +1,48 @@
-function [A,B,r] = cca(X,Y)
+function [Wx, Wy, r] = cca(X,Y)
 
-[n,p1] = size(X);
-p2 = size(Y,2);
+% CCA calculate canonical correlations
+%
+% [Wx Wy r] = cca(X,Y) where Wx and Wy contains the canonical correlation
+% vectors as columns and r is a vector with corresponding canonical
+% correlations. The correlations are sorted in descending order. X and Y
+% are matrices where each column is a sample. Hence, X and Y must have
+% the same number of columns.
+%
+% Example: If X is M*K and Y is N*K there are L=MIN(M,N) solutions. Wx is
+% then M*L, Wy is N*L and r is L*1.
+%
+%
+% ? 2000 Magnus Borga, Link?pings universitet
 
-% Center the variables
-X = X - repmat(mean(X,1), n, 1);
-Y = Y - repmat(mean(Y,1), n, 1);
+% --- Calculate covariance matrices ---
 
-% Factor the inputs, and find a full rank set of columns if necessary
-[Q1,T11,perm1] = qr(X,0);
-% rankX = sum(abs(diag(T11)) > eps(abs(T11(1)))*max(n,p1));
+z = [X;Y];
+C = cov(z.');
+sx = size(X,1);
+sy = size(Y,1);
+Cxx = C(1:sx, 1:sx) + 10^(-8)*eye(sx);
+Cxy = C(1:sx, sx+1:sx+sy);
+Cyx = Cxy';
+Cyy = C(sx+1:sx+sy, sx+1:sx+sy) + 10^(-8)*eye(sy);
+invCyy = inv(Cyy);
 
-[Q2,T22,perm2] = qr(Y,0);
-% rankY = sum(abs(diag(T22)) > eps(abs(T22(1)))*max(n,p2));
+% --- Calcualte Wx and r ---
 
-% Compute canonical coefficients and canonical correlations.  For rankX >
-% rankY, the economy-size version ignores the extra columns in L and rows
-% in D. For rankX < rankY, need to ignore extra columns in M and D
-% explicitly. Normalize A and B to give U and V unit variance.
-% d = min(rankX,rankY);
-[L,D,M] = svd(Q1' * Q2,0);
-A = T11 \ L(:,:) * sqrt(n-1);
-B = T22 \ M(:,:) * sqrt(n-1);
-r = min(max(diag(D(:,:))', 0), 1); % remove roundoff errs
+[Wx,r] = eig(inv(Cxx)*Cxy*invCyy*Cyx); % Basis in X
+r = sqrt(real(r));      % Canonical correlations
 
+% --- Sort correlations ---
 
+V = fliplr(Wx);		% reverse order of eigenvectors
+r = flipud(diag(r));	% extract eigenvalues anr reverse their orrer
+[r,I]= sort((real(r)));	% sort reversed eigenvalues in ascending order
+r = flipud(r);		% restore sorted eigenvalues into descending order
+for j = 1:length(I)
+  Wx(:,j) = V(:,I(j));  % sort reversed eigenvectors in ascending order
+end
+Wx = fliplr(Wx);	% restore sorted eigenvectors into descending order
 
-% Put coefficients back to their full size and their correct order
-% A(perm1,:) = [A; zeros(p1-rankX,d)];
-% B(perm2,:) = [B; zeros(p2-rankY,d)];
+% --- Calcualte Wy  ---
 
-
-
+Wy = invCyy*Cyx*Wx;     % Basis in Y
+Wy = Wy./repmat(sqrt(sum(abs(Wy).^2)),sy,1); % Normalize Wy
