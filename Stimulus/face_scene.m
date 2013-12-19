@@ -42,6 +42,9 @@ trigExpEnd     = 201;
 trigBlockStart = 100;
 trigBlockEnd   = 120;
 
+fontSizeCross = 48;
+fontSizeInstruct = 24;
+
 
 if nargin < 1
     triggerOut = 0;
@@ -160,6 +163,12 @@ seqs = [
     10     3     2     1     7    12     2     3     3     8    11     7     3    11     6    11     6     5;
     12     8     5     3     2     3    12     1     2     1    10     6     4     3     1     7     5     3;
      2    11     6     7     4     1     5     2    12    12     9     9     5     6    11    10    11     8];
+ 
+rng(0,'twister');
+% targets = [1 3 5 7 9];
+targets = zeros(nbTrial, nbBlock);
+keyResponse = targets;
+targets(randperm(nbBlock*nbTrial,5)) = 1;
 
 stimPic = {};
 for blk = 1:nbBlock
@@ -196,7 +205,6 @@ try
     Priority(MaxPriority(win));
     [ifi,nrValidSamples,stddev] =Screen('GetFlipInterval', win);
     
-    Screen('TextSize', win, 36);
     Screen('TextColor', win, WhiteIndex(win));
     Screen('FillRect', win, BlackIndex(win));
 
@@ -212,7 +220,7 @@ try
         stimWeight(1,frame) = 1/2*(1+sin(2*pi*freqFace*frame/fps));
         stimWeight(2,frame) = 1/2*(1+sin(2*pi*freqScene*frame/fps));
     end
-
+    Screen('TextSize', win, fontSizeInstruct);
     DrawFormattedText(win, 'Instruction, press space to continue', 'center', 'center');
     Screen('Flip', win);
     KbWait;
@@ -222,59 +230,92 @@ try
     timeExpStart = GetSecs();
     if triggerOut, outp(hex2dec(triggerPort),0); end
     for blk = blocks
-        % Draw texture to memory
-        stimTex = {};
-        step = 1; stepAll = nbTrial*nbCat;
-        for trial = 1:nbTrial
-            for cat = 1:nbCat
-                for frame = 1:fps
-                    stimTex{cat, trial, frame} = Screen('MakeTexture', win, stimWeight(cat,frame)*stimPic{blk, cat, trial});
-                end
-                stepPercent = [num2str(step/stepAll*100,'%3.1f') '%']; step = step + 1;
-                DrawFormattedText(win, ['Loading Stimuli ' stepPercent], 'center', 'center');
-                Screen('Flip', win);
-            end
-        end        
+%         % Draw texture to memory
+%         Screen('TextSize', win, fontSizeInstruct);
+%         stimTex = {};
+%         step = 1; stepAll = nbTrial*nbCat;
+%         for trial = 1:nbTrial
+%             for cat = 1:nbCat
+%                 for frame = 1:fps
+%                     stimTex{cat, trial, frame} = Screen('MakeTexture', win, stimWeight(cat,frame)*stimPic{blk, cat, trial});
+%                 end
+%                 stepPercent = [num2str(step/stepAll*100,'%3.1f') '%']; step = step + 1;
+%                 DrawFormattedText(win, ['Loading Stimuli ' stepPercent], 'center', 'center');
+%                 Screen('Flip', win);
+%             end
+%         end        
         % Wait
-        DrawFormattedText(win, ['Block ' num2str(blk) '\n Press space when ready'], 'center', 'center');
+        DrawFormattedText(win, ['Block ' num2str(blk) '\n\n Press space when ready'], 'center', 'center');
         Screen('Flip', win);
         KbWait;
         % Block Start
+        Screen('TextSize', win, fontSizeCross);
         if triggerOut, outp(hex2dec(triggerPort),trigBlockStart+blk); end
         timeBlkStart = GetSecs();
         if triggerOut, outp(hex2dec(triggerPort),0); end
         for trial = 1:nbTrial
             % Prestimulus fixation
-            DrawFormattedText(win, '+', 'center', 'center');
-            Screen('Flip', win);
-            WaitSecs(timeISI(seqs(trial, blk)));
+            prefixStart = GetSecs();
+            if targets(trial, blk)
+                Screen('TextColor', win, GrayIndex(win));
+                DrawFormattedText(win, '+', 'center', 'center');
+                Screen('TextColor', win, WhiteIndex(win));
+                Screen('Flip', win);
+            else
+                DrawFormattedText(win, '+', 'center', 'center');
+                Screen('Flip', win);
+            end
+            % Draw texture to memory
+            stimTex = {};
+            for cat = 1:nbCat
+                for frame = 1:fps
+                    stimTex{cat, frame} = Screen('MakeTexture', win, stimWeight(cat,frame)*stimPic{blk, cat, trial});
+                end
+            end
+            % check for target response
+            while(GetSecs - prefixStart < timeISI(seqs(trial, blk)))
+                [keyIsDown, secs, keyCode] = KbCheck;
+                assert(~keyCode(KbName('Escape')),onExit);
+                if keyIsDown, keyResponse(trial, blk) = 1; end
+            end
+%             WaitSecs(timeISI(seqs(trial, blk)));
             % Stimulus
             frame = 1;
             timeTrialStart = GetSecs();
+            if triggerOut, outp(hex2dec(triggerPort),conds(1,blk)*10+conds(2,blk)); end
             while(GetSecs()-timeTrialStart < timeStim)
-                Screen('DrawTextures', win, [stimTex{2, trial, frame} stimTex{1, trial, frame}]);
-                Screen('DrawTextures', win, [stimTex{2, trial, frame} stimTex{1, trial, frame}]);
-                if triggerOut, outp(hex2dec(triggerPort),conds(1,blk)*10+conds(2,blk)); end
+                Screen('DrawTextures', win, [stimTex{2, frame} stimTex{1, frame}]);
+                DrawFormattedText(win, '+', 'center', 'center');
                 vbl = Screen('Flip', win);
                 frame = frame + 1; if frame > fps, frame = 1; end;
             end
             if triggerOut, outp(hex2dec(triggerPort),0); end
+            
+            for cat = 1:nbCat
+                for frame = 1:fps
+                    Screen('Close', stimTex{cat, frame});
+                end
+            end
         end
         % Block End
         if triggerOut, outp(hex2dec(triggerPort),trigBlockEnd+blk); end
         timeBlkEnd = GetSecs();
         if triggerOut, outp(hex2dec(triggerPort),0); end
-        % Clear texture memory
-        for trial = 1:nbTrial
-            for cat = 1:nbCat
-                for frame = 1:fps
-                    Screen('Close', stimTex{cat, trial, frame});
-                end
-            end
-        end
+%         % Clear texture memory
+%         for trial = 1:nbTrial
+%             for cat = 1:nbCat
+%                 for frame = 1:fps
+%                     Screen('Close', stimTex{cat, trial, frame});
+%                 end
+%             end
+%         end
+        Screen('TextSize', win, fontSizeInstruct);
         DrawFormattedText(win, 'Rest', 'center', 'center');
         Screen('Flip', win);
-        WaitSecs(10);
+        while(GetSecs()-timeBlkEnd<10)
+            [keyIsDown, secs, keyCode] = KbCheck; 
+            assert(~keyCode(KbName('Escape')),onExit);
+        end
     end
     if triggerOut, outp(hex2dec(triggerPort),trigExpEnd); end
     timeExpEnd = GetSecs();
@@ -285,11 +326,15 @@ try
     Screen('CloseAll');
     Priority(0);
     sprintf('Total experiment time: %fs',timeExp);
-catch 
+    
+catch
     RestrictKeysForKbCheck([]);
+    Priority(0);
     ShowCursor;
     Screen('CloseAll');
-    Priority(0);
     psychrethrow(psychlasterror);
+    sprintf('Exit with errors');
 end
 
+    
+end
