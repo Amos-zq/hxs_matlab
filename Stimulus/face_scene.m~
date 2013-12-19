@@ -4,15 +4,14 @@ function face_scene( triggerOut, subID, blocks )
 %     face_scene
 %
 % Inputs:
-%     triggerOut : trigger output
-%     subID      : subject ID
-%     blocks     : selected blocks
+
+%     blocks: selected blocks 
 %
 % Outputs:
 %     
 %
 % Example:
-%     face_scene(1, 5);
+%     face_scene
 %
 % Other m-files required: psychtoolbox
 % Subfunctions: none
@@ -137,8 +136,7 @@ end
 
 %% Generate stimuli sequence
 rng(subID,'twister');
-seqBlock = randperm(nbBlock);   % Pseudo random block sequence according to subject ID
-
+seqBlock = randperm(nbBlock);
 conds = zeros(nbCat+1,nbBlock);
 [condFace, condScene] = meshgrid(1:nbCondPerCat, 1:nbCondPerCat);
 
@@ -174,10 +172,10 @@ seqs = seqs(:,seqBlock);
 %     12     8     5     3     2     3    12     1     2     1    10     6     4     3     1     7     5     3;
 %      2    11     6     7     4     1     5     2    12    12     9     9     5     6    11    10    11     8];
  
+rng(0,'twister');
 targets = zeros(nbTrial, nbBlock);
 keyResponse = targets;
-rng(subID,'twister');
-targets(randperm(nbBlock*nbTrial,5)) = 1;   % Pseudo random target trials according to subID
+targets(randperm(nbBlock*nbTrial,5)) = 1;
 % targets([2 4 5 7 9]) = 1;
 
 stimPic = {};
