@@ -225,8 +225,8 @@ try
         fps = round(1/ifi);
     end
     
-    stimWeight = zeros(nbCat,fps);
-    for frame = 1:fps
+    stimWeight = zeros(nbCat,fps*timeStim);
+    for frame = 1:fps*timeStim
         stimWeight(1,frame) = 1/2*(1+sin(2*pi*freqFace*frame/fps));
         stimWeight(2,frame) = 1/2*(1+sin(2*pi*freqScene*frame/fps));
     end
@@ -278,7 +278,7 @@ try
             % Draw texture to memory
             stimTex = {};
             for cat = 1:nbCat
-                for frame = 1:fps
+                for frame = 1:fps*timeStim
                     stimTex{cat, frame} = Screen('MakeTexture', win, stimWeight(cat,frame)*stimPic{blk, cat, trial});
                 end
             end
@@ -288,17 +288,24 @@ try
                 assert(~keyCode(KbName('Escape')),onExit);
                 if keyIsDown, keyResponse(trial, blk) = 1; end
             end
-%             WaitSecs(timeISI(seqs(trial, blk)));
             % Stimulus
-            frame = 1;
-            timeTrialStart = GetSecs();
             if triggerOut, outp(hex2dec(triggerPort),conds(1,blk)*10+conds(2,blk)); end
-            while(GetSecs()-timeTrialStart < timeStim)
+            timeTrialStart = GetSecs();
+            fps*timeStim
+            for frame = 1:fps*timeStim
                 Screen('DrawTextures', win, [stimTex{2, frame} stimTex{1, frame}]);
                 DrawFormattedText(win, '+', 'center', 'center');
                 vbl = Screen('Flip', win);
-                frame = frame + 1; if frame > fps, frame = 1; end;
             end
+            timeTrialEnd = GetSecs();
+            timeTrialEnd - timeTrialStart
+            % frame = 1;
+            % while(GetSecs()-timeTrialStart < timeStim)
+            %     Screen('DrawTextures', win, [stimTex{2, frame} stimTex{1, frame}]);
+            %     DrawFormattedText(win, '+', 'center', 'center');
+            %     vbl = Screen('Flip', win);
+            %     frame = frame + 1; if frame > fps, frame = 1; end;
+            % end
             if triggerOut, outp(hex2dec(triggerPort),0); end
             
             for cat = 1:nbCat
