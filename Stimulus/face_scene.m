@@ -1,4 +1,4 @@
-function face_scene( triggerOut, subID, blocks )
+function face_scene( triggerOut, subID, subName, blocks )
 %Crossmodulation frequency face and scene stimuli
 % Syntax:  
 %     face_scene
@@ -6,6 +6,7 @@ function face_scene( triggerOut, subID, blocks )
 % Inputs:
 %     triggerOut : trigger output
 %     subID      : subject ID
+%     subName    : subject name
 %     blocks     : selected blocks
 %
 % Outputs:
@@ -21,7 +22,8 @@ function face_scene( triggerOut, subID, blocks )
 % Author: Xiaoshan Huang, xiaoshanhuang@gmail.com
 %
 % Versions:
-%    v0.1: 2013-12-18 15:59, orignal
+%     v0.1: 2013-12-18 15:59, orignal
+%     v0.2: 2013-12-19 12:39, optimization
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -32,6 +34,7 @@ nbCond       = nbCondPerCat^nbCat;
 nbRepPerCond = 2;
 nbBlock      = nbCond*nbRepPerCond;
 nbTrial      = 12;
+nbTarget     = 5;
 
 freqFace  = 6;
 freqScene = 1;
@@ -57,6 +60,10 @@ if nargin < 2
 end
 
 if nargin < 3
+    subName = [];
+end
+
+if nargin < 4
     blocks = 1:nbBlock;
 end
 
@@ -136,7 +143,6 @@ for i = 1:length(filename)
 end
 
 %% Generate stimuli sequence
-rng(subID,'twister');
 % rng(subID,'twister');
 rand('twister', subID);
 seqBlock = randperm(nbBlock);   % Pseudo random block sequence according to subject ID
@@ -157,7 +163,6 @@ conds = conds(:,seqBlock);
 
 seqs = zeros(nbTrial, nbBlock);
 for blk = 1:nbBlock
-    rng(blk,'twister');
     % rng(blk,'twister');
     rand('twister', blk);
     seqs(:,blk) = randperm(nbTrial)';
@@ -180,8 +185,6 @@ seqs = seqs(:,seqBlock);
  
 targets = zeros(nbTrial, nbBlock);
 keyResponse = targets;
-rng(subID,'twister');
-targets(randperm(nbBlock*nbTrial,5)) = 1;   % Pseudo random target trials according to subID
 % rng(subID,'twister');
 rand('twister', subID);
 targets(randsample(nbBlock*nbTrial,nbTarget)) = 1;   % Pseudo random target trials according to subID
@@ -211,6 +214,11 @@ for blk = 1:nbBlock
             end
         end
     end
+end
+
+if ~isempty(subName)
+    logFileName = ['log_' num2str(subID) '_' subName '_' datestr(now, 'yyyymmdd_HHMMSS')];
+    save(logFileName, 'blocks', 'conds', 'seqs', 'targets');
 end
 
 %%
@@ -246,22 +254,7 @@ try
     if triggerOut, outp(hex2dec(triggerPort),trigExpStart); end
     timeExpStart = GetSecs();
     if triggerOut, outp(hex2dec(triggerPort),0); end
-    for blk = blocks
-%         % Draw texture to memory
-%         Screen('TextSize', win, fontSizeInstruct);
-%         stimTex = {};
-%         step = 1; stepAll = nbTrial*nbCat;
-%         for trial = 1:nbTrial
-%             for cat = 1:nbCat
-%                 for frame = 1:fps
-%                     stimTex{cat, trial, frame} = Screen('MakeTexture', win, stimWeight(cat,frame)*stimPic{blk, cat, trial});
-%                 end
-%                 stepPercent = [num2str(step/stepAll*100,'%3.1f') '%']; step = step + 1;
-%                 DrawFormattedText(win, ['Loading Stimuli ' stepPercent], 'center', 'center');
-%                 Screen('Flip', win);
-%             end
-%         end        
-        % Wait
+    for blk = blocks      
         DrawFormattedText(win, ['Block ' num2str(blk) '\n\n Press space when ready'], 'center', 'center');
         Screen('Flip', win);
         KbWait;
@@ -306,15 +299,8 @@ try
             end
             timeTrialEnd = GetSecs();
             timeTrialEnd - timeTrialStart
-            % frame = 1;
-            % while(GetSecs()-timeTrialStart < timeStim)
-            %     Screen('DrawTextures', win, [stimTex{2, frame} stimTex{1, frame}]);
-            %     DrawFormattedText(win, '+', 'center', 'center');
-            %     vbl = Screen('Flip', win);
-            %     frame = frame + 1; if frame > fps, frame = 1; end;
-            % end
             if triggerOut, outp(hex2dec(triggerPort),0); end
-            
+            % Clear texture memory
             for cat = 1:nbCat
                 for frame = 1:fps
                     Screen('Close', stimTex{cat, frame});
@@ -325,14 +311,7 @@ try
         if triggerOut, outp(hex2dec(triggerPort),trigBlockEnd+blk); end
         timeBlkEnd = GetSecs();
         if triggerOut, outp(hex2dec(triggerPort),0); end
-%         % Clear texture memory
-%         for trial = 1:nbTrial
-%             for cat = 1:nbCat
-%                 for frame = 1:fps
-%                     Screen('Close', stimTex{cat, trial, frame});
-%                 end
-%             end
-%         end
+
         Screen('TextSize', win, fontSizeInstruct);
         DrawFormattedText(win, 'Rest', 'center', 'center');
         Screen('Flip', win);
@@ -349,7 +328,9 @@ try
     ShowCursor;
     Screen('CloseAll');
     Priority(0);
-    sprintf('Total experiment time: %fs',timeExp);
+    save(logFileName,'keyResponse','-append');
+    sprintf('Accuracy: %f%', sum(sum(targets.*keyResponse))/nbTarget*100)
+    sprintf('Total experiment time: %fs',timeExp)
     
 catch
     RestrictKeysForKbCheck([]);
