@@ -1,12 +1,10 @@
-function face_scene( triggerOut, subID, subName, blocks )
+function face_scene( triggerOut, blocks )
 %Crossmodulation frequency face and scene stimuli
 % Syntax:  
 %     face_scene
 %
 % Inputs:
 %     triggerOut : trigger output
-%     subID      : subject ID
-%     subName    : subject name
 %     blocks     : selected blocks
 %
 % Outputs:
@@ -24,8 +22,19 @@ function face_scene( triggerOut, subID, subName, blocks )
 % Versions:
 %     v0.1: 2013-12-18 15:59, orignal
 %     v0.2: 2013-12-19 12:39, optimization
+%     v0.3: 2013-12-19 18:32, save subject information
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Information input popup
+prompt={'Subject ID:','Name:', 'Gender: F/M'};
+name='Input ';
+numlines=1;
+defaultanswer={'000', '', 'F'};
+
+answer=inputdlg(prompt,name,numlines,defaultanswer);
+subID = str2num(answer{1});
+subName = answer{2};
+subGen = answer{3};
 
 %% Stimuli params
 nbCat        = 2; % 1-face, 2-scene
@@ -50,20 +59,11 @@ trigBlockEnd   = 120;
 fontSizeCross = 48;
 fontSizeInstruct = 24;
 
-
 if nargin < 1
     triggerOut = 0;
 end
 
 if nargin < 2
-    subID = 0;
-end
-
-if nargin < 3
-    subName = [];
-end
-
-if nargin < 4
     blocks = 1:nbBlock;
 end
 
@@ -217,8 +217,8 @@ for blk = 1:nbBlock
 end
 
 if ~isempty(subName)
-    logFileName = ['log_' num2str(subID) '_' subName '_' datestr(now, 'yyyymmdd_HHMMSS')];
-    save(logFileName, 'blocks', 'conds', 'seqs', 'targets');
+    logFileName = ['log_' num2str(subID, '%03d') '_' subName '_' datestr(now, 'yyyymmdd_HHMMSS')];
+    save(logFileName, 'subID', 'subName', 'subGen', 'blocks', 'conds', 'seqs', 'targets');
 end
 
 %%
@@ -267,6 +267,9 @@ try
             % Prestimulus fixation
             prefixStart = GetSecs();
             if targets(trial, blk)
+                DrawFormattedText(win, '+', 'center', 'center');
+                Screen('Flip', win);
+                WaitSecs(0.5);
                 Screen('TextColor', win, GrayIndex(win));
                 DrawFormattedText(win, '+', 'center', 'center');
                 Screen('TextColor', win, WhiteIndex(win));
