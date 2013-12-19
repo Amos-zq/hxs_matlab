@@ -137,6 +137,8 @@ end
 
 %% Generate stimuli sequence
 rng(subID,'twister');
+% rng(subID,'twister');
+rand('twister', subID);
 seqBlock = randperm(nbBlock);   % Pseudo random block sequence according to subject ID
 
 conds = zeros(nbCat+1,nbBlock);
@@ -156,6 +158,8 @@ conds = conds(:,seqBlock);
 seqs = zeros(nbTrial, nbBlock);
 for blk = 1:nbBlock
     rng(blk,'twister');
+    % rng(blk,'twister');
+    rand('twister', blk);
     seqs(:,blk) = randperm(nbTrial)';
 end
 seqs = seqs(:,seqBlock);
@@ -178,6 +182,9 @@ targets = zeros(nbTrial, nbBlock);
 keyResponse = targets;
 rng(subID,'twister');
 targets(randperm(nbBlock*nbTrial,5)) = 1;   % Pseudo random target trials according to subID
+% rng(subID,'twister');
+rand('twister', subID);
+targets(randsample(nbBlock*nbTrial,nbTarget)) = 1;   % Pseudo random target trials according to subID
 % targets([2 4 5 7 9]) = 1;
 
 stimPic = {};
