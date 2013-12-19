@@ -250,7 +250,8 @@ try
     Screen('Flip', win);
     KbWait;
     WaitSecs(0.2);
-
+    
+    timeTrial = zeros(nbTrial, nbBlock);
     if triggerOut, outp(hex2dec(triggerPort),trigExpStart); end
     timeExpStart = GetSecs();
     if triggerOut, outp(hex2dec(triggerPort),0); end
@@ -266,18 +267,8 @@ try
         for trial = 1:nbTrial
             % Prestimulus fixation
             prefixStart = GetSecs();
-            if targets(trial, blk)
-                DrawFormattedText(win, '+', 'center', 'center');
-                Screen('Flip', win);
-                WaitSecs(0.5);
-                Screen('TextColor', win, GrayIndex(win));
-                DrawFormattedText(win, '+', 'center', 'center');
-                Screen('TextColor', win, WhiteIndex(win));
-                Screen('Flip', win);
-            else
-                DrawFormattedText(win, '+', 'center', 'center');
-                Screen('Flip', win);
-            end
+            DrawFormattedText(win, '+', 'center', 'center');
+            Screen('Flip', win);
             % Draw texture to memory
             stimTex = {};
             for cat = 1:nbCat
@@ -285,23 +276,37 @@ try
                     stimTex{cat, frame} = Screen('MakeTexture', win, stimWeight(cat,frame)*stimPic{blk, cat, trial});
                 end
             end
+            if targets(trial, blk)
+                fprintf('Target\n');
+                WaitSecs(0.5);
+                Screen('TextColor', win, GrayIndex(win));
+                DrawFormattedText(win, '+', 'center', 'center');
+                Screen('TextColor', win, WhiteIndex(win));
+                Screen('Flip', win);
+            end
             % check for target response
             while(GetSecs - prefixStart < timeISI(seqs(trial, blk)))
                 [keyIsDown, secs, keyCode] = KbCheck;
                 assert(~keyCode(KbName('Escape')),onExit);
-                if keyIsDown, keyResponse(trial, blk) = 1; end
+                if keyIsDown
+                    keyResponse(trial, blk) = 1;
+                    if targets(trial, blk)
+                        fprintf('hit\n');
+                    else
+                        fprintf('error\n');
+                    end
+                end
             end
             % Stimulus
             if triggerOut, outp(hex2dec(triggerPort),conds(1,blk)*10+conds(2,blk)); end
             timeTrialStart = GetSecs();
-            fps*timeStim
             for frame = 1:fps*timeStim
                 Screen('DrawTextures', win, [stimTex{2, frame} stimTex{1, frame}]);
                 DrawFormattedText(win, '+', 'center', 'center');
                 vbl = Screen('Flip', win);
             end
             timeTrialEnd = GetSecs();
-            timeTrialEnd - timeTrialStart
+            timeTrial(trial, blk) = timeTrialEnd - timeTrialStart;
             if triggerOut, outp(hex2dec(triggerPort),0); end
             % Clear texture memory
             for cat = 1:nbCat
@@ -331,17 +336,16 @@ try
     ShowCursor;
     Screen('CloseAll');
     Priority(0);
-    save(logFileName,'keyResponse','-append');
-    sprintf('Accuracy: %f%', sum(sum(targets.*keyResponse))/nbTarget*100)
-    sprintf('Total experiment time: %fs',timeExp)
-    
+    save(logFileName,'keyResponse', 'timeExp', 'timeTrial','-append');
+    fprintf('Accuracy: %f%\n', sum(sum(targets.*keyResponse))/nbTarget*100);
+    fprintf('Total experiment time: %fs\n',timeExp);
 catch
     RestrictKeysForKbCheck([]);
     Priority(0);
     ShowCursor;
     Screen('CloseAll');
     psychrethrow(psychlasterror);
-    sprintf('Exit with errors');
+    fprintf('Exit with errors');
 end
 
     
