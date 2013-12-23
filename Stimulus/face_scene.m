@@ -309,11 +309,12 @@ try
             timeTrial(trial, blk) = timeTrialEnd - timeTrialStart;
             if triggerOut, outp(hex2dec(triggerPort),0); end
             % Clear texture memory
-            for cat = 1:nbCat
-                for frame = 1:fps
-                    Screen('Close', stimTex{cat, frame});
-                end
-            end
+            % for cat = 1:nbCat
+            %     for frame = 1:fps
+            %         Screen('Close', stimTex{cat, frame});
+            %     end
+            % end
+            Screen('Close');
         end
         % Block End
         if triggerOut, outp(hex2dec(triggerPort),trigBlockEnd+blk); end
