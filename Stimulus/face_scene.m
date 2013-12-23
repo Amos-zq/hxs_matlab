@@ -314,7 +314,6 @@ try
                     Screen('Close', stimTex{cat, frame});
                 end
             end
-            clear stimTex;
         end
         % Block End
         if triggerOut, outp(hex2dec(triggerPort),trigBlockEnd+blk); end
