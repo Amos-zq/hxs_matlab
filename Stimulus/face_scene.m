@@ -337,7 +337,9 @@ try
     ShowCursor;
     Screen('CloseAll');
     Priority(0);
-    save(logFileName,'keyResponse', 'timeExp', 'timeTrial','-append');
+    if ~isempty(subName)
+        save(logFileName,'keyResponse', 'timeExp', 'timeTrial','-append');
+    end
     fprintf('Accuracy: %f%\n', sum(sum(targets.*keyResponse))/nbTarget*100);
     fprintf('Total experiment time: %fs\n',timeExp);
 catch
