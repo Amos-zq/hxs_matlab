@@ -1,21 +1,19 @@
-function [ x ] = f_alpha_gaussian( n, q_d, alpha )
+function [ x ] = f_alpha_uniform( n, range, alpha )
 
 % Purpose:
 %     Generates a discrete colored noise vector of size n with power 
 %     spectrum distribution of alpha
-%     White noise is sampled from Gaussian (0,q_d) distribution
+%     White noise is sampled from Uniform (-range,range) distribution
 %
 % Usage:
-%        [ x ] = f_alpha_gaussian( n, q_d, alpha )
+%        [ x ] = f_alpha_uniform( n, range, alpha )
 %     
 %     n - problem size
-%     q_d - variance of the underlying zero-mean Gaussian
+%     range - range of the underlying Uniform distribution
 %     alpha - resulting colored noise has 1/f^alpha power spectrum
 
 
-%  Set the deviation of the noise.
-%
-  q_d = sqrt ( q_d );
+
 %
 %  Generate the coefficients Hk.
 %
@@ -31,8 +29,7 @@ function [ x ] = f_alpha_gaussian( n, q_d, alpha )
 %  Fill Wk with white noise.
 %
   
-  wfa = [ q_d * randn( n, 1 ); zeros( n, 1 ); ];
-  %wfa = [ q_d * ( 2*rand( n, 1 ) - 1 ); zeros( n, 1 ); ];
+  wfa = [ -range + 2 * range.* rand( n, 1 ); zeros( n, 1 ); ];
   
 %
 %  Perform the discrete Fourier transforms of Hk and Wk.

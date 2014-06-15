@@ -1,15 +1,16 @@
-function [ x ] = f_alpha_gaussian( n, q_d, alpha )
+function [ x ] = f_alpha_tgaussian( n, q_d, range, alpha )
 
-% Purpose:
 %     Generates a discrete colored noise vector of size n with power 
 %     spectrum distribution of alpha
-%     White noise is sampled from Gaussian (0,q_d) distribution
+%     White noise is sampled from truncated zero-mean Gaussian distribution
+%     with variance q_d and range (-range,range)
 %
 % Usage:
-%        [ x ] = f_alpha_gaussian( n, q_d, alpha )
+%        [ x ] = f_alpha_tgaussian( n, q_d, range, alpha )
 %     
 %     n - problem size
 %     q_d - variance of the underlying zero-mean Gaussian
+%     range - range to truncate the Gaussian distribution
 %     alpha - resulting colored noise has 1/f^alpha power spectrum
 
 
@@ -31,8 +32,11 @@ function [ x ] = f_alpha_gaussian( n, q_d, alpha )
 %  Fill Wk with white noise.
 %
   
-  wfa = [ q_d * randn( n, 1 ); zeros( n, 1 ); ];
-  %wfa = [ q_d * ( 2*rand( n, 1 ) - 1 ); zeros( n, 1 ); ];
+  wfa = q_d * randn( 1, n );
+  wfa = max( [ wfa; -range * ones( 1, n ) ] );
+  wfa = min( [ wfa; range * ones( 1, n ) ] )';
+
+  wfa = [ wfa; zeros( n, 1 ); ];
   
 %
 %  Perform the discrete Fourier transforms of Hk and Wk.
