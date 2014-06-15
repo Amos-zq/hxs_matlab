@@ -5,15 +5,24 @@ function [ EEG, regCoef, corrER ] = bcgRefLayer( EEG, BCG , chanSel, method, ety
 %    
 %
 % Inputs:
-%
+%     EEG     : EEG data from EEG electrodes
+%     BCG     : BCG data from BCG electrodes
+%     chansel : channel selection from BCG reference layer
+%     method  : BCG removal methods
+%         AR    : all channel regressout
+%         CCAR  : canonical correlation analysis
+%         CCAMW : CCA with moving window template
+%     etype   : event type for ECG R peak
 %
 % Outputs:
-%
+%     EEG : BCG artifact free EEG
+%     regCoef : regression coefficient
+%     corrER: correlation between reference BCG signal and EEG signal
 %
 % Example:
 %     [ EEG, regCoef, corrER ]  = bcgRefLayer( EEG, BCG, method, etype)
 %
-% Other m-files required: none
+% Other m-files required: EEGLAB v13.2.1
 % Subfunctions: none
 % MAT-files required: none
 %
@@ -72,6 +81,8 @@ switch method
             EEG.data(chan,:) = EEG.data(chan,:) - refSignal;
         end
     case 'BR'
+        bcgMeanEEG = mean(bcgEpochEEG, 3);
+        bcgMeanBCG = mean(bcgEpochBCG, 3);
         for chan = 1:EEG.nbchan
             regCoef(:, chan) = bcgMeanBCG'\bcgMeanEEG(chan,:)';
             refSignal = regCoef(:, chan)' * BCG.data;
@@ -104,8 +115,8 @@ switch method
             EEG.data(chan,:) = EEG.data(chan,:) - refSignal;
         end
     case 'CCAMW'
-        winSize = 30 * EEG.srate;
-        stepLength = 1 * EEG.srate;
+        winSize = 60 * EEG.srate;
+        stepLength = 30 * EEG.srate;
         for pnt = 1:stepLength:EEG.pnts
             if pnt <= winSize
                 bcgEpochRange = find(qrs<winSize);
