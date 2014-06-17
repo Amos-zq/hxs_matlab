@@ -47,7 +47,7 @@ if nargin < 5
     cbSize = 0.8;
 end
 
-totalTime = trialTime*trialNum*(2*blockNum+1)
+totalTime = trialTime*trialNum*(2*blockNum)
 
 %% System config
 warning('off','MATLAB:dispatcher:InexactMatch');
@@ -61,8 +61,7 @@ triggerOut = true;
 
 if triggerOut,
     config_io;
-    triggerPort = 'E800';
-    TRTrigger = 2;
+    triggerPort = '6FF8';
     stimTrigger = 1;
     outp(hex2dec(triggerPort),0);
 end
@@ -79,7 +78,7 @@ try
     
     switch shape
         case 'rect'
-            sidelength = 50;
+            sidelength = 200;
             numCheckers =  ceil([width; height] ./ sidelength);
             % make an atomic checkerboard
             miniboard = eye(2,'uint8') .* 255;
@@ -130,15 +129,8 @@ try
         [keyIsDown, secs, keyCode] = KbCheck;
         assert(~keyCode(KbName('Escape')),onExit);
     end
-    if triggerOut, outp(hex2dec(triggerPort),TRTrigger); end
     
     expStart = GetSecs;
-    %% Prestimulus Fixation
-    while GetSecs-expStart<trialTime*trialNum,
-        [keyIsDown, secs, keyCode] = KbCheck;
-        assert(~keyCode(KbName('Escape')),onExit);
-    end
-%     WaitSecs(1);
     if triggerOut, outp(hex2dec(triggerPort),0); end
     for i = 1:blockNum
         blockStart = GetSecs;
@@ -156,10 +148,10 @@ try
             if triggerOut, outp(hex2dec(triggerPort),0); end
         end
         %% Fixation
-        while GetSecs-blockStart<trialTime*trialNum*2
-            [keyIsDown, secs, keyCode] = KbCheck;
-            assert(~keyCode(KbName('Escape')),onExit);
-        end
+%         while GetSecs-blockStart<trialTime*trialNum*2
+%             [keyIsDown, secs, keyCode] = KbCheck;
+%             assert(~keyCode(KbName('Escape')),onExit);
+%         end
     end
     
     totalTime = GetSecs - expStart
