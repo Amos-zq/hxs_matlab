@@ -28,7 +28,7 @@ function checkerboard_stim_trig( shape,trialTime,trialNum,blockNum,cbSize )
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin < 1
-    shape = 'circ';
+    shape = 'rect';
 end
 
 if nargin < 2
@@ -36,18 +36,18 @@ if nargin < 2
 end
     
 if nargin < 3
-    trialNum = 15;
+    trialNum = 50;
 end
 
 if nargin < 4
-    blockNum = 10;
+    blockNum = 1;
 end
 
 if nargin < 5
     cbSize = 0.8;
 end
 
-totalTime = trialTime*trialNum*(2*blockNum+1)
+totalTime = trialTime*trialNum*blockNum
 
 %% System config
 warning('off','MATLAB:dispatcher:InexactMatch');
@@ -60,19 +60,13 @@ AssertOpenGL;
 triggerOut = true;
 
 if triggerOut,
-%     config_io;
-%     triggerPort = 'E800';
-%     TRTrigger = 2;
-%     stimTrigger = 1;
-%     outp(hex2dec(triggerPort),0);
     IOPort('CloseAll');
-    [comportHandle errmsg] = IOPort('OpenSerialPort', 'COM1', 'BaudRate=115200');
+    [comportHandle errmsg] = IOPort('OpenSerialPort', 'COM2', 'BaudRate=115200');
     IOPort('Flush', comportHandle);
 end
-
 getSensorResult = [1 3 0];
 setThreshold = [3 5 0 0 0];
-setEvent = [4 6 0 3 1 0];
+setEvent = [4 6 0 3 10 0];
 
 %%
 
@@ -86,7 +80,7 @@ try
     
     switch shape
         case 'rect'
-            sidelength = 50;
+            sidelength = 200;
             numCheckers =  ceil([width; height] ./ sidelength);
             % make an atomic checkerboard
             miniboard = eye(2,'uint8') .* 255;
@@ -118,30 +112,23 @@ try
     
     % Define refresh rate.
     ifi = Screen('GetFlipInterval', win);
-    
-    % set to 'ifi/2' for maximum refresh rate
-    % ifi/2 represents the next possible retrace
-    % 1/frequency < ifi is impossible
-%     swapinterval = 1 / frequency;
-%     deadline = GetSecs + trialNum*swapinterval;
         
     %% Trigger Threshold
     Screen('DrawTexture',win,texture(1));
     Screen('Flip', win);
-    WaitSecs(0.1);
+    WaitSecs(0.5);
     IOPort('Write', comportHandle, uint8(getSensorResult));
     msg = IOPort('Read', comportHandle, 1, 5);
     sensorWhite = msg(4)*256 + msg(5);
     Screen('DrawTexture',win,texture(2));
     Screen('Flip', win, 0, 2);
-    WaitSecs(0.1);
+    WaitSecs(0.5);
     IOPort('Write', comportHandle, uint8(getSensorResult));
     msg = IOPort('Read', comportHandle, 1, 5);
     sensorBlack = msg(4)*256 + msg(5);
     trigThreshold = 0.8*(sensorWhite - sensorBlack)
     setThreshold(4) = fix(trigThreshold / 256);
     setThreshold(5) = mod(trigThreshold, 256);
-    WaitSecs(0.1);
     IOPort('Write', comportHandle, uint8(setThreshold));
     
     % Wait for key press ('s') to start
@@ -151,16 +138,8 @@ try
         [keyIsDown, secs, keyCode] = KbCheck;
         assert(~keyCode(KbName('Escape')),onExit);
     end
-    if triggerOut, outp(hex2dec(triggerPort),TRTrigger); end
     
     expStart = GetSecs;
-    %% Prestimulus Fixation
-    while GetSecs-expStart<trialTime*trialNum,
-        [keyIsDown, secs, keyCode] = KbCheck;
-        assert(~keyCode(KbName('Escape')),onExit);
-    end
-%     WaitSecs(1);
-    if triggerOut, outp(hex2dec(triggerPort),0); end
     for i = 1:blockNum
         blockStart = GetSecs;
         %% Flash
@@ -175,24 +154,19 @@ try
                 [keyIsDown, secs, keyCode] = KbCheck;
                 assert(~keyCode(KbName('Escape')),onExit);
             end
-            if triggerOut, outp(hex2dec(triggerPort),0); end
-        end
-        %% Fixation
-        while GetSecs-blockStart<trialTime*trialNum*2
-            [keyIsDown, secs, keyCode] = KbCheck;
-            assert(~keyCode(KbName('Escape')),onExit);
         end
     end
     
     totalTime = GetSecs - expStart
     Screen('CloseAll');
+    IOPort('CloseAll');
     disp('done');
     warning('on','MATLAB:dispatcher:InexactMatch');
 
 
 catch
-
     Screen('CloseAll');
+    IOPort('CloseAll');
     psychrethrow(psychlasterror);
 
 end
