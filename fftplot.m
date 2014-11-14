@@ -13,7 +13,7 @@ freq = 0:Fs/length(x):Fs/2;
 
 plot(freq,10*log10(psdx));
 grid on; xlim(flim);
-title('Power Spectral Density Estimate');
+title('Power Spectral Density Estimation');
 xlabel('Frequency (Hz)'); ylabel('Power/Frequency (dB/Hz)');
 
 % plot(freq,(psdx));
